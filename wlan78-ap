@@ -1,0 +1,257 @@
+#!/bin/bash
+
+# Interfaces
+AP_IFACE="wlan_78"
+# IP locale du point d'accès
+AP_IP="192.168.50.1/24"
+SSID="wlan78"
+# Chemins de configuration
+WPA_CONF="/tmp/wpa_supplicant_ap.conf"
+DNSMASQ_CONF="/tmp/dnsmasq_ap.conf"
+
+
+# 🔐 Vérifier que le script est exécuté en tant que root
+if [[ $EUID -ne 0 ]]; then
+    echo "Permission denied : This script must be run as root"
+    exit 1
+fi
+# ✅ Vérifier que le script est bien exécuté avec Bash
+if [[ -z "$BASH_VERSION" ]]; then
+    echo
+    echo " Sorry, this script must be run with Bash."
+    echo    
+    exit 1
+fi
+if ! dnsmasq --version >/dev/null 2>&1; then
+    echo " 'dnsmasq' is not properly installed or not executable."
+    exit 1
+fi
+
+# 🔍 Vérification de iptables
+if ! iptables --version >/dev/null 2>&1; then
+    echo " 'iptables' is not properly installed or not executable."
+    exit 1
+fi
+# 🔍 Vérification de iw
+if ! iw --version >/dev/null 2>&1; then
+    echo " 'iw' is not properly installed or not executable."
+    exit 1
+fi
+# Vérifie si l'utilisateur a demandé une réinitialisation
+if [[ "$1" == "reset" ]]; then
+    pkill -f "wpa_supplicant.*$AP_IFACE"
+    pkill dnsmasq
+    rm -f /tmp/dnsmasq_ap.conf
+    rm -f /tmp/wpa_supplicant_ap.conf
+    iptables -t nat -D POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null
+    iw dev "$AP_IFACE" del 2>/dev/null
+    sleep 1
+    echo "  [✅] Access Point successfully reset."
+    echo
+fi
+#echo "🧹 Nettoyage des services existants..."
+pkill dnsmasq
+pkill -f "wpa_supplicant.*$AP_IFACE"
+
+
+# 🔍 Détection des interfaces Wi-Fi valides pour BASE_IFACE
+#echo "🔍 Recherche d'une interface Wi-Fi valide (managed + UP + IP + Internet + AP)..."
+
+mapfile -t VALID_IFACES < <(
+  for iface in $(iw dev | awk '$1=="Interface"{print $2}'); do
+    type=$(iw dev "$iface" info | awk '/type/ {print $2}')
+    up=$(ip link show "$iface" | grep -q "state UP" && echo "yes" || echo "no")
+    ip=$(ip -4 addr show dev "$iface" | grep -q 'inet ' && echo "yes" || echo "no")
+    ping -I "$iface" -c 1 -W 1 8.8.8.8 >/dev/null 2>&1 && online="yes" || online="no"
+    phy=$(iw dev "$iface" info | awk '/wiphy/ {print "phy"$2}')
+    supports_ap=$(iw phy "$phy" info | grep -q "\* AP$" && echo "yes" || echo "no")
+
+    if [[ "$type" == "managed" && "$up" == "yes" && "$ip" == "yes" && "$online" == "yes" && "$supports_ap" == "yes" ]]; then
+      echo "$iface"
+    fi
+  done
+)
+
+# Sélection ou message d'erreur
+if [[ ${#VALID_IFACES[@]} -eq 0 ]]; then
+  echo "No valid Wi-Fi interface found, The interface must be connected to the Internet and support AP mode."
+  exit 1
+elif [[ ${#VALID_IFACES[@]} -eq 1 ]]; then
+  BASE_IFACE="${VALID_IFACES[0]}"
+#  echo "✅ Interface automatiquement sélectionnée : $BASE_IFACE"
+else
+ # echo "Multiple valid interfaces detected :"
+#  for i in "${!VALID_IFACES[@]}"; do
+  #  echo "[$i] ${VALID_IFACES[$i]}"
+#  done
+  read -p "Choose the interface to use (number) :" idx
+  BASE_IFACE="${VALID_IFACES[$idx]}"
+  #echo "Selected interface : $BASE_IFACE"
+fi
+
+# 🧠 Récupérer l'IP de BASE_IFACE (ex: wlp3s0)
+base_ip=$(ip -4 addr show dev "$BASE_IFACE" | awk '/inet / {print $2}' | cut -d/ -f1)
+
+# 🚨 Éviter conflit IP entre BASE_IFACE et AP_IFACE
+if [[ "$base_ip" == "${AP_IP%/*}" ]]; then
+   # echo "⚠  Conflit détecté : $BASE_IFACE a déjà l’IP $base_ip. Attribution d’une autre IP à $AP_IFACE."
+    AP_IP="192.168.50.2/24"
+fi
+
+if iw dev | grep -qw "$AP_IFACE"; then
+    if [[ ! -f "$WPA_CONF" ]]; then
+       # echo "⚠  $AP_IFACE exists but $WPA_CONF is missing."
+       # echo "🧹 Removing $AP_IFACE to avoid misconfiguration..."
+        ip link set "$AP_IFACE" down 2>/dev/null
+        iw dev "$AP_IFACE" del 2>/dev/null
+    else
+        echo "  You may already have an active Access Point."
+    fi
+else
+        echo "  Creating your new Access Point from your interface Wi-Fi..."
+fi
+
+
+# Créer l'interface virtuelle AP si elle n'existe pas
+if ! iw dev | grep -q "$AP_IFACE"; then
+    iw dev "$BASE_IFACE" interface add "$AP_IFACE" type __ap
+    sleep 1
+    echo
+    echo -e "  Right now, your Wi-Fi network name (SSID) is \e[1;33m$SSID\e[0m. This name appears on your other Wi-Fi devices, such as a smartphone or tablet..."
+fi
+# Activer l'interface AP
+ip link set "$AP_IFACE" up
+sleep 1
+
+# Attribuer l’adresse IP si non présente
+if ! ip addr show dev "$AP_IFACE" | grep -q "${AP_IP%/*}"; then
+    ip addr add "$AP_IP" dev "$AP_IFACE"
+fi
+
+#echo "📡 Récupération de la fréquence actuelle..."
+
+# Extraire directement la fréquence entre parenthèses après "channel"
+FREQ=$(iw dev "$BASE_IFACE" info | awk -F '[()]' '/channel/ {print $2}' | awk '{print $1}')
+
+if [[ -z "$FREQ" ]]; then
+    echo "Unable to extract frequency from Wi-Fi device"
+    exit 1
+fi
+
+# Gestion robuste du fichier wpa_supplicant_ap.conf
+if [[ ! -f "$WPA_CONF" ]]; then 
+    echo
+    regenerate_wpa_conf=1
+else
+#    echo "You may already have an active Access Point."
+       
+#    echo
+    while
+ true; do
+        sleep 1
+        read -rp "  Change password for your AP ? (y/n) : " regen
+        case "$regen" in
+            [yY]) 
+               # echo "🔁 Régénération du fichier..."
+                regenerate_wpa_conf=1
+                break
+                ;;
+            [nN]|"")
+                #echo "✅ Fichier conservé."
+                regenerate_wpa_conf=0
+                break
+                ;;
+            *)
+                echo "  Invalid input. Please respond with y (yes) or n (no)."
+                ;;
+        esac
+    done
+fi
+
+if [[ $regenerate_wpa_conf -eq 1 ]]; then
+   # SSID="wlan78"
+   # echo "Your Wi-Fi network name (SSID) is: \n\e[1;32m$SSID This name appears on other Wi-Fi devices."
+   
+    #  echo -e "  Your Wi-Fi network name (SSID) is \e[1;33m$SSID\033[0m, This name appears on your other Wi-Fi devices."
+
+    # Extraire ancien mot de passe s’il existe
+    if [[ -f "$WPA_CONF" ]]; then
+        OLD_PSK=$(awk -F '"' '/psk=/ {print $2}' "$WPA_CONF")
+    fi
+    # Demande du nouveau mot de passe
+    while true; do
+        read -s -p "  Enter the password (8 to 63 characters): " PASS1
+        echo
+        read -s -p "  Enter the password again: : " PASS2
+        echo 
+        if [[ "$PASS1" != "$PASS2" ]]; then
+            echo "  Passwords do not match. Please try again."
+        elif [[ ${#PASS1} -lt 8 || ${#PASS1} -gt 63 ]]; then
+            echo "  The password must be between 8 and 63 characters long."
+        else
+            break
+        fi
+    done
+
+    if [[ "$PASS1" != "$OLD_PSK" ]]; then
+        #echo "⚠️  Le mot de passe est identique à l’ancien."
+#        echo "ℹ️  Si vos appareils sont déjà connectés, ils peuvent utiliser le cache existant."
+   # else
+         echo
+         echo -e "\e[1;31m *VERY IMPORTANT* :\e[33m To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first, if it exists."
+         echo -e "                           If you're having trouble with your Access Point, please run \e[1;35m./wlan78-ap reset \e[33m or\e[1;35m bash wlan78-ap reset"
+   fi
+
+    # Génération du fichier
+    cat > "$WPA_CONF" <<EOF
+ap_scan=2
+network={
+    ssid="$SSID"
+    mode=2
+    key_mgmt=WPA-PSK
+    psk="$PASS1"
+    frequency=2412
+}
+EOF
+
+    chmod 600 "$WPA_CONF"
+   # echo "✅ Fichier $WPA_CONF généré."
+fi
+
+
+# Mettre à jour ou insérer la ligne frequency= dans wpa_supplicant.conf
+if grep -q "frequency=" "$WPA_CONF"; then
+    sed -i "s/^ *frequency=.*/    frequency=$FREQ/" "$WPA_CONF"
+else
+    sed -i "/^ *mode=2/a \    frequency=$FREQ" "$WPA_CONF"
+fi
+
+#echo "🚀 Démarrage du point d’accès..."
+
+# 📄 Génération dynamique du fichier /etc/dnsmasq_ap.conf
+#echo "📄 Génération de $DNSMASQ_CONF..."
+
+cat > "$DNSMASQ_CONF" <<EOF
+interface=$AP_IFACE
+dhcp-range=192.168.50.10,192.168.50.100,12h
+EOF
+
+chmod 600 "$DNSMASQ_CONF"
+# Lancer dnsmasq pour gérer le DHCP
+# Lancer wpa_supplicant pour créer l’AP
+wpa_supplicant -B -i "$AP_IFACE" -c "$WPA_CONF" >/dev/null 2>&1
+dnsmasq -C "$DNSMASQ_CONF"
+
+#echo "[*] Activation du routage IP..."
+sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1
+
+#echo "[*] Ajout de la règle NAT avec iptables..."
+#iptables -t nat -A POSTROUTING -o  "$BASE_IFACE" -j MASQUERADE
+if ! iptables -t nat -C POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null; then
+    iptables -t nat -A POSTROUTING -o "$BASE_IFACE" -j MASQUERADE
+fi
+
+echo -e "\n\e[1;32m  ACCESS-POINT ENABLED"
+echo
+
+
