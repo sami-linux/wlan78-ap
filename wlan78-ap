@@ -48,6 +48,10 @@ if [[ "$1" == "reset" ]]; then
     sleep 1
     echo "  [✅] Access Point successfully reset."
     echo
+    sleep 1
+    echo -e "  To create your access point again, please run: \e[1;32m./wlan78-ap\e[0m"
+    echo
+    exit 0
 fi
 #echo "🧹 Nettoyage des services existants..."
 pkill dnsmasq
