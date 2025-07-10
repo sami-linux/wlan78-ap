@@ -1,5 +1,5 @@
 # Linux Wi-Fi Access Point: wlan78-ap
-
+- This script has been tested on Gentoo and Manjaro. Fedora requires a few extra steps (which I've already successfully figured out) and       I'll add them to the script as soon as possible.
 ## 📌 Why this script?
 
 - **Windows provides a built-in graphical tool** to create a Wi-Fi hotspot — but Linux does not.
