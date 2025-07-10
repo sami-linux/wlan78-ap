@@ -2,11 +2,10 @@
 
 ## 📌 Why this script?
 
-- 🪟 **Windows provides a built-in graphical tool** to create a Wi-Fi hotspot — but Linux does not.
-- 🛠️ Tools like **hostapd** are **complex to configure** and are becoming **obsolete**.
-- 🚀 This project offers a **simple way** to create a functional access point from any Linux system **without complex config files**.
-- 🌐 This script is especially designed for people who don't have Ethernet access and want to use their Linux system as a Wi-Fi repeater of their existing Wi-Fi network.
-- ✅ No need to touch any config file — everything is generated dynamically.
+- **Windows provides a built-in graphical tool** to create a Wi-Fi hotspot — but Linux does not.
+- This project offers a **simple way** to create a functional access point from any Linux system **without complex config files**.
+- This script is especially designed for people who don't have Ethernet access and want to use their Linux system as a Wi-Fi repeater of their existing Wi-Fi network.
+- No need to touch any config file — everything is generated dynamically.
 
 ## ✅ Features
 
@@ -37,6 +36,7 @@ sudo ./wlan78-ap
 - You will be prompted to enter a password.
 - Your access point will be created and start broadcasting.
 - Connect with your smartphone, tablet or other Wi-Fi device.
+- To check if your Wi-Fi interface supports AP mode, run the following command: **"iw list | grep -A 10 "Supported interface modes"**. You should see the word 'AP' appear.
 
 To reset the access point setup and start over:
 
