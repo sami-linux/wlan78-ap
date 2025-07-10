@@ -13,7 +13,7 @@
 - Dynamically generates all necessary configuration files.
 - Creates a virtual access point (`wlan78`) in seconds.
 - Just type a password, and the AP is ready.
-- Run `wlan78-ap reset` anytime to **reset and start clean**.
+- Run `wlan78-ap reset` anytime to **reset and start clean** 
 
 ## 🧱 Requirements
 
@@ -28,21 +28,21 @@ Make sure the following tools are installed:
 
 ## 💻 Usage
 
-```bash
 chmod +x wlan78-ap
 sudo ./wlan78-ap
-```
 
 - You will be prompted to enter a password.
 - Your access point will be created and start broadcasting.
 - Connect with your smartphone, tablet or other Wi-Fi device.
 - To check if your Wi-Fi interface supports AP mode, run the following command: **"iw list | grep -A 10 "Supported interface modes"**. You should see the word 'AP' appear.
 
-To reset the access point setup and start over:
+## Very Important
 
-```bash
+- Your access point 'wlan78' may refuse to reconnect after a password change. Consider forgetting this network on your smartphone or tablet, for example, then reconnect using the new password.
+
+## To reset the access point setup and start over:
+
 sudo ./wlan78-ap reset
-```
 
 ## 🙋 Contact & Support
 
