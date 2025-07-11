@@ -37,6 +37,7 @@ if ! iw --version >/dev/null 2>&1; then
     echo " 'iw' is not properly installed or not executable."
     exit 1
 fi
+
 # Vérifie si l'utilisateur a demandé une réinitialisation
 if [[ "$1" == "reset" ]]; then
     pkill -f "wpa_supplicant.*$AP_IFACE"
@@ -46,18 +47,55 @@ if [[ "$1" == "reset" ]]; then
     iptables -t nat -D POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null
     iw dev "$AP_IFACE" del 2>/dev/null
     sleep 1
-    echo "  [✅] Access Point successfully reset."
+    echo
+    echo "   Access Point successfully reset."
     echo
     sleep 1
-    echo -e "  To create your access point again, please run: \e[1;32m./wlan78-ap\e[0m"
+    echo -e "  To create your access point again run : \e[1;32m./wlan78-ap\e[0m"
     echo
+    if grep -qi "fedora" /etc/os-release; then
+    systemctl restart NetworkManager
+    sleep 3
+    fi
+    if grep -qi "systemrescue" /etc/os-release; then
+    systemctl restart NetworkManager
+    sleep 3
+    fi
     exit 0
 fi
 #echo "🧹 Nettoyage des services existants..."
 pkill dnsmasq
 pkill -f "wpa_supplicant.*$AP_IFACE"
-
-
+# Fedora system verification
+if grep -qi "fedora" /etc/os-release; then
+    IS_FEDORA=true
+else
+    IS_FEDORA=false
+fi
+# SystemRescueCd system verification
+if grep -qi "systemrescue" /etc/os-release; then
+    IS_RESCUE=true
+else
+    IS_RESCUE=false
+fi
+if [[ "$IS_RESCUE" == true ]]; then
+#echo you should stop iptables first in systemrescuecd
+systemctl stop iptables
+fi
+if [[ "$IS_FEDORA" == true ]]; then 
+# Ce bloc est spécialement conçu pour Fedora : systemd-resolved et firewalld
+mkdir -p /etc/systemd/resolved.conf.d/
+echo -e "[Resolve]\nDNSStubListener=no" | sudo tee /etc/systemd/resolved.conf.d/dnsmasq.conf  >/dev/null
+restorecon -v /etc/systemd/resolved.conf.d/dnsmasq.conf 
+systemctl restart systemd-resolved
+#lsof -i :53
+firewall-cmd --zone=FedoraWorkstation --add-service=dhcp --permanent >/dev/null 2>&1 
+firewall-cmd --zone=FedoraWorkstation --add-service=dns --permanent  >/dev/null 2>&1
+firewall-cmd --zone=FedoraWorkstation --add-masquerade --permanent  >/dev/null 2>&1
+# firewall-cmd --list-all --zone=FedoraWorkstation
+firewall-cmd --reload >/dev/null 2>&1
+# Fin de configuration pour Fedora
+fi
 # 🔍 Détection des interfaces Wi-Fi valides pour BASE_IFACE
 #echo "🔍 Recherche d'une interface Wi-Fi valide (managed + UP + IP + Internet + AP)..."
 
@@ -202,8 +240,8 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
 #        echo "ℹ️  Si vos appareils sont déjà connectés, ils peuvent utiliser le cache existant."
    # else
          echo
-         echo -e "\e[1;31m *VERY IMPORTANT* :\e[33m To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first, if it exists."
-         echo -e "                           If you're having trouble with your Access Point, please run \e[1;35m./wlan78-ap reset \e[33m or\e[1;35m bash wlan78-ap reset"
+         echo -e "\e[1;31m * VERY IMPORTANT * :\e[33m To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first."
+         echo -e "                      If you're having trouble with your Access Point or your Wi-Fi interface run : \e[1;35m./wlan78-ap reset \e[33m "
    fi
 
     # Génération du fichier
@@ -237,6 +275,7 @@ fi
 
 cat > "$DNSMASQ_CONF" <<EOF
 interface=$AP_IFACE
+bind-interfaces
 dhcp-range=192.168.50.10,192.168.50.100,12h
 EOF
 
@@ -248,14 +287,13 @@ dnsmasq -C "$DNSMASQ_CONF"
 
 #echo "[*] Activation du routage IP..."
 sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1
-
 #echo "[*] Ajout de la règle NAT avec iptables..."
 #iptables -t nat -A POSTROUTING -o  "$BASE_IFACE" -j MASQUERADE
 if ! iptables -t nat -C POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null; then
     iptables -t nat -A POSTROUTING -o "$BASE_IFACE" -j MASQUERADE
 fi
 
+
 echo -e "\n\e[1;32m  ACCESS-POINT ENABLED"
 echo
-
 
