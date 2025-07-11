@@ -1,10 +1,11 @@
 # Linux Wi-Fi Access Point: wlan78-ap
-- This script has been tested on Gentoo and Manjaro. Fedora requires a few extra steps (which I've already successfully figured out) and       I'll add them to the script as soon as possible.
-## 📌 Why this script?
+- So far, This script has been tested on Gentoo, Manjaro ,Fedora, Calculate Linux and SysRescueCd. I'll add the tested distributions progressively.
+- If your interface refuses to reconnect, which is rare, immediately run ./wlan78-ap reset. Everything will return to normal, and you can      then reactivate your access point with confidence by running ./wlan78-ap
+## 📌 Why, this script?
 
 - **Windows provides a built-in graphical tool** to create a Wi-Fi hotspot — but Linux does not.
 - This project offers a **simple way** to create a functional access point from any Linux system **without complex config files**.
-- This script is especially designed for people who don't have Ethernet access and want to use their Linux system as a Wi-Fi repeater of their existing Wi-Fi network.
+- This script is especially designed for people who don't have Ethernet access and want to use their Linux system as a Wi-Fi repeater of       their existing Wi-Fi network.
 - No need to touch any config file — everything is generated dynamically.
 
 ## ✅ Features
@@ -29,20 +30,20 @@ Make sure the following tools are installed:
 ## 💻 Usage
 
 chmod +x wlan78-ap
-sudo ./wlan78-ap
+ ./wlan78-ap
 
 - You will be prompted to enter a password.
 - Your access point will be created and start broadcasting.
 - Connect with your smartphone, tablet or other Wi-Fi device.
-- To check if your Wi-Fi interface supports AP mode, run the following command: **"iw list | grep -A 10 "Supported interface modes"**. You should see the word 'AP' appear.
+- To check if your Wi-Fi interface supports AP mode, run the following command: **iw list | grep -A 10 "Supported interface modes**. You       should see the word 'AP' appear.
 
 ## Very Important
 
-- Your access point 'wlan78' may refuse to reconnect after a password change. Consider forgetting this network on your smartphone or tablet, for example, then reconnect using the new password.
+- Your access point 'wlan78' may refuse to reconnect after a password change. Consider **forgetting** this network on your smartphone or tablet, for example, then reconnect using the new password.
 
 ## To reset the access point setup and start over:
 
-sudo ./wlan78-ap reset
+  ./wlan78-ap reset
 
 ## 🙋 Contact & Support
 
