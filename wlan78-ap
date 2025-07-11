@@ -56,11 +56,11 @@ if [[ "$1" == "reset" ]]; then
     if grep -qi "fedora" /etc/os-release; then
     systemctl restart NetworkManager
     sleep 3
-    fi
+fi
     if grep -qi "systemrescue" /etc/os-release; then
     systemctl restart NetworkManager
     sleep 3
-    fi
+fi
     exit 0
 fi
 #echo "🧹 Nettoyage des services existants..."
@@ -79,7 +79,7 @@ else
     IS_RESCUE=false
 fi
 if [[ "$IS_RESCUE" == true ]]; then
-#echo you should stop iptables first in systemrescuecd
+echo you should stop iptables first in systemrescuecd
 systemctl stop iptables
 fi
 if [[ "$IS_FEDORA" == true ]]; then 
