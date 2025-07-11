@@ -1,6 +1,6 @@
 # Linux Wi-Fi Access Point: wlan78-ap
 - So far, This script has been tested on Gentoo, Manjaro ,Fedora, Calculate Linux and SysRescueCd. I'll add the tested distributions progressively.
-- If your interface refuses to reconnect, which is rare, immediately run ./wlan78-ap reset. Everything will return to normal, and you can      then reactivate your access point with confidence by running ./wlan78-ap
+- If your interface refuses to reconnect, which is rare, immediately run "./wlan78-ap reset". Everything will return to normal, and you can      then reactivate your access point with confidence by running "./wlan78-ap".
 ## 📌 Why, this script?
 
 - **Windows provides a built-in graphical tool** to create a Wi-Fi hotspot — but Linux does not.
