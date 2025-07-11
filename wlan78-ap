@@ -12,29 +12,27 @@ DNSMASQ_CONF="/tmp/dnsmasq_ap.conf"
 
 # 🔐 Vérifier que le script est exécuté en tant que root
 if [[ $EUID -ne 0 ]]; then
-    echo "Permission denied : This script must be run as root"
+    echo " * Permission denied : This script must be run as root"
     exit 1
 fi
 # ✅ Vérifier que le script est bien exécuté avec Bash
 if [[ -z "$BASH_VERSION" ]]; then
-    echo
-    echo " Sorry, this script must be run with Bash."
-    echo    
+    echo " * Sorry, this script must be run with Bash."
     exit 1
 fi
 if ! dnsmasq --version >/dev/null 2>&1; then
-    echo " 'dnsmasq' is not properly installed or not executable."
+    echo " * dnsmasq' is not properly installed or not executable."
     exit 1
 fi
 
 # 🔍 Vérification de iptables
 if ! iptables --version >/dev/null 2>&1; then
-    echo " 'iptables' is not properly installed or not executable."
+    echo " * iptables' is not properly installed or not executable."
     exit 1
 fi
 # 🔍 Vérification de iw
 if ! iw --version >/dev/null 2>&1; then
-    echo " 'iw' is not properly installed or not executable."
+    echo " *  iw is not properly installed or not executable."
     exit 1
 fi
 
@@ -47,12 +45,12 @@ if [[ "$1" == "reset" ]]; then
     iptables -t nat -D POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null
     iw dev "$AP_IFACE" del 2>/dev/null
     sleep 1
-    echo
-    echo "   Access Point successfully reset."
-    echo
+   # echo
+    echo "  * Access Point successfully reset."
+   # echo
     sleep 1
-    echo -e "  To create your access point again run : \e[1;32m./wlan78-ap\e[0m"
-    echo
+    echo -e "  * To create your access point again run : \e[1;32m./wlan78-ap\e[0m"
+   # echo
     if grep -qi "fedora" /etc/os-release; then
     systemctl restart NetworkManager
     sleep 3
@@ -79,7 +77,7 @@ else
     IS_RESCUE=false
 fi
 if [[ "$IS_RESCUE" == true ]]; then
-echo you should stop iptables first in systemrescuecd
+#echo you should stop iptables first in systemrescuecd
 systemctl stop iptables
 fi
 if [[ "$IS_FEDORA" == true ]]; then 
@@ -116,7 +114,7 @@ mapfile -t VALID_IFACES < <(
 
 # Sélection ou message d'erreur
 if [[ ${#VALID_IFACES[@]} -eq 0 ]]; then
-  echo "No valid Wi-Fi interface found, The interface must be connected to the Internet and support AP mode."
+  echo " * No valid Wi-Fi interface found, The interface must be connected to the Internet and support AP mode."
   exit 1
 elif [[ ${#VALID_IFACES[@]} -eq 1 ]]; then
   BASE_IFACE="${VALID_IFACES[0]}"
@@ -147,10 +145,10 @@ if iw dev | grep -qw "$AP_IFACE"; then
         ip link set "$AP_IFACE" down 2>/dev/null
         iw dev "$AP_IFACE" del 2>/dev/null
     else
-        echo "  You may already have an active Access Point."
+        echo " * You may already have an active Access Point."
     fi
 else
-        echo "  Creating your new Access Point from your interface Wi-Fi..."
+        echo " * Creating your new Access Point from your interface Wi-Fi..."
 fi
 
 
@@ -158,8 +156,8 @@ fi
 if ! iw dev | grep -q "$AP_IFACE"; then
     iw dev "$BASE_IFACE" interface add "$AP_IFACE" type __ap
     sleep 1
-    echo
-    echo -e "  Right now, your Wi-Fi network name (SSID) is \e[1;33m$SSID\e[0m. This name appears on your other Wi-Fi devices, such as a smartphone or tablet..."
+    #echo
+    echo -e " * Right now, your Wi-Fi network name (SSID) is \e[1;33m$SSID\e[0m. This name appears on your other Wi-Fi devices, such as a smartphone or tablet..."
 fi
 # Activer l'interface AP
 ip link set "$AP_IFACE" up
@@ -176,13 +174,12 @@ fi
 FREQ=$(iw dev "$BASE_IFACE" info | awk -F '[()]' '/channel/ {print $2}' | awk '{print $1}')
 
 if [[ -z "$FREQ" ]]; then
-    echo "Unable to extract frequency from Wi-Fi device"
+    echo " * Unable to extract frequency from Wi-Fi device"
     exit 1
 fi
 
 # Gestion robuste du fichier wpa_supplicant_ap.conf
 if [[ ! -f "$WPA_CONF" ]]; then 
-    echo
     regenerate_wpa_conf=1
 else
 #    echo "You may already have an active Access Point."
@@ -191,7 +188,7 @@ else
     while
  true; do
         sleep 1
-        read -rp "  Change password for your AP ? (y/n) : " regen
+        read -rp " * Change password for your AP ? (y/n) : " regen
         case "$regen" in
             [yY]) 
                # echo "🔁 Régénération du fichier..."
@@ -204,7 +201,7 @@ else
                 break
                 ;;
             *)
-                echo "  Invalid input. Please respond with y (yes) or n (no)."
+                echo " * Invalid input. Please respond with y (yes) or n (no)."
                 ;;
         esac
     done
@@ -222,14 +219,14 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
     fi
     # Demande du nouveau mot de passe
     while true; do
-        read -s -p "  Enter the password (8 to 63 characters): " PASS1
+        read -s -p " * Enter the password (8 to 63 characters): " PASS1
         echo
-        read -s -p "  Enter the password again: : " PASS2
+        read -s -p " * Enter the password again: : " PASS2
         echo 
         if [[ "$PASS1" != "$PASS2" ]]; then
-            echo "  Passwords do not match. Please try again."
+            echo " * Passwords do not match. Please try again."
         elif [[ ${#PASS1} -lt 8 || ${#PASS1} -gt 63 ]]; then
-            echo "  The password must be between 8 and 63 characters long."
+            echo " * The password must be between 8 and 63 characters long."
         else
             break
         fi
@@ -239,9 +236,10 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
         #echo "⚠️  Le mot de passe est identique à l’ancien."
 #        echo "ℹ️  Si vos appareils sont déjà connectés, ils peuvent utiliser le cache existant."
    # else
-         echo
-         echo -e "\e[1;31m * VERY IMPORTANT * :\e[33m To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first."
-         echo -e "                      If you're having trouble with your Access Point or your Wi-Fi interface run : \e[1;35m./wlan78-ap reset \e[33m "
+         
+         echo -e " \e[1;31m                                    * VERY IMPORTANT *\e[33m"
+         echo -e " * To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first."
+         echo -e " * If you're having trouble with your Access Point or your Wi-Fi interface run : \e[1;35m./wlan78-ap reset \e[33m "
    fi
 
     # Génération du fichier
@@ -294,6 +292,6 @@ if ! iptables -t nat -C POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null; 
 fi
 
 
-echo -e "\n\e[1;32m  ACCESS-POINT ENABLED"
-echo
+echo -e "\e[1;32m * ACCESS-POINT ENABLED"
+
 
