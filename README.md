@@ -29,7 +29,6 @@ Make sure the following tools are installed:
 
 ## 💻 Usage
 
-  chmod +x wlan78-ap
   ./wlan78-ap
 
 - You will be prompted to enter a password.
