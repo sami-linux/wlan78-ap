@@ -159,6 +159,13 @@ if ! iw dev | grep -q "$AP_IFACE"; then
     #echo
     echo -e " * Right now, your Wi-Fi network name (SSID) is \e[1;33m$SSID\e[0m. This name appears on your other Wi-Fi devices, such as a smartphone or tablet..."
 fi
+# Adapter l'adresse MAC sur Debian, Ubuntu, Linux Mint et dérivés
+if grep -qiE '^(ID|ID_LIKE)=(.*\b(ubuntu|linuxmint|debian)\b)' /etc/os-release; then
+    NEW_MAC="02:11:22:33:44:55"
+    # Appliquer seulement si cette adresse MAC n'est pas déjà utilisée
+    ip link | grep -qi "$NEW_MAC" || ip link set "$AP_IFACE" address "$NEW_MAC"
+fi
+
 # Activer l'interface AP
 ip link set "$AP_IFACE" up
 sleep 1
