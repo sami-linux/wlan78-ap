@@ -1,5 +1,5 @@
 # Linux Wi-Fi Access Point: wlan78-ap
-- So far, This script has been tested on Gentoo, Manjaro, archlinux, Fedora, Calculate Linux and Sysrescuecd. I'll add the tested distributions progressively.
+- So far, This script has been tested on Debian and distributions based on it, ubuntu and distributions based on it, Linux Mint, Gentoo, Manjaro, archlinux, Fedora, Calculate Linux and Sysrescuecd. I'll add the tested distributions progressively.
 - If your interface refuses to reconnect, which is rare, immediately run "./wlan78-ap reset". Everything will return to normal, and you can      then reactivate your access point with confidence by running "./wlan78-ap".
 ## 📌 Why, this script?
 
