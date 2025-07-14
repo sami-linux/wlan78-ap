@@ -160,10 +160,25 @@ if ! iw dev | grep -q "$AP_IFACE"; then
     echo -e " * Right now, your Wi-Fi network name (SSID) is \e[1;33m$SSID\e[0m. This name appears on your other Wi-Fi devices, such as a smartphone or tablet..."
 fi
 # Adapter l'adresse MAC sur Debian, Ubuntu, Linux Mint et dérivés
-if grep -qiE '^(ID|ID_LIKE)=(.*\b(ubuntu|linuxmint|debian)\b)' /etc/os-release; then
-    NEW_MAC="02:11:22:33:44:55"
+#if grep -qiE '^(ID|ID_LIKE)=(.*\b(ubuntu|linuxmint|debian)\b)' /etc/os-release; then
+#    NEW_MAC="02:11:22:33:44:55"
     # Appliquer seulement si cette adresse MAC n'est pas déjà utilisée
-    ip link | grep -qi "$NEW_MAC" || ip link set "$AP_IFACE" address "$NEW_MAC"
+#   ip link | grep -qi "$NEW_MAC" || ip link set "$AP_IFACE" address "$NEW_MAC"
+#fi
+# 🧠 Vérifier et corriger le cas où BASE_IFACE et AP_IFACE ont la même adresse MAC
+MAC_BASE=$(ip link show "$BASE_IFACE" | awk '/link\/ether/ {print $2}')
+MAC_AP=$(ip link show "$AP_IFACE" | awk '/link\/ether/ {print $2}')
+
+if [[ "$MAC_BASE" == "$MAC_AP" ]]; then
+    NEW_MAC="02:11:22:33:44:55"
+    # Appliquer uniquement si l'adresse MAC choisie n'est pas déjà utilisée
+    if ! ip link | grep -qi "$NEW_MAC"; then
+        ip link set "$AP_IFACE" address "$NEW_MAC"
+    else
+#        echo "⚠️ L'adresse MAC $NEW_MAC est déjà utilisée sur une autre interface."
+#        echo "⛔ Impossible de l'appliquer à $AP_IFACE."
+        exit 1
+    fi
 fi
 
 # Activer l'interface AP
