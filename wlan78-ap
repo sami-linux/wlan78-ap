@@ -12,7 +12,7 @@ DNSMASQ_CONF="/tmp/dnsmasq_ap.conf"
 
 # 🔐 Vérifier que le script est exécuté en tant que root
 if [[ $EUID -ne 0 ]]; then
-    echo " * Permission denied : This script must be run as root"
+    echo " * wlan78-ap : superuser access required."
     exit 1
 fi
 # ✅ Vérifier que le script est bien exécuté avec Bash
@@ -21,18 +21,18 @@ if [[ -z "$BASH_VERSION" ]]; then
     exit 1
 fi
 if ! dnsmasq --version >/dev/null 2>&1; then
-    echo " * dnsmasq' is not properly installed or not executable."
+    echo " * dnsmasq is not installed on your system."
     exit 1
 fi
 
 # 🔍 Vérification de iptables
 if ! iptables --version >/dev/null 2>&1; then
-    echo " * iptables' is not properly installed or not executable."
+    echo " * iptables is not installed on your system."
     exit 1
 fi
 # 🔍 Vérification de iw
 if ! iw --version >/dev/null 2>&1; then
-    echo " *  iw is not properly installed or not executable."
+    echo " *  iw is not installed on your system."
     exit 1
 fi
 
