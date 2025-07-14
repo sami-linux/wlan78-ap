@@ -292,6 +292,6 @@ if ! iptables -t nat -C POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null; 
 fi
 
 
-echo -e "\e[1;32m * ACCESS-POINT ENABLED"
+echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
 
 
