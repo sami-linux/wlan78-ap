@@ -299,6 +299,22 @@ if ! iptables -t nat -C POSTROUTING -o "$BASE_IFACE" -j MASQUERADE 2>/dev/null; 
 fi
 
 
+#echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
+echo
+# Masquer le curseur
+tput civis
+
+for i in {1..4}; do
+    echo -ne "\e[1;32m * ACCESS-POINT ENABLED\e[0m\r"
+    sleep 0.6
+    echo -ne "                         \r"
+    sleep 0.6
+done
+
+# Réafficher le message final en vert
 echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
+
+# Réactiver le curseur
+tput cnorm
 
 
