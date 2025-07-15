@@ -32,7 +32,7 @@ if ! iptables --version >/dev/null 2>&1; then
 fi
 # 🔍 Vérification de iw
 if ! iw --version >/dev/null 2>&1; then
-    echo " *  iw is not installed on your system."
+    echo " * iw is not installed on your system."
     exit 1
 fi
 
@@ -320,7 +320,7 @@ fi
 echo
 # Masquer le curseur
 tput civis
-sleep 2
+sleep 3
 for i in {1..4}; do
     echo -ne "\e[1;32m * ACCESS-POINT ENABLED\e[0m\r"
     sleep 0.6
@@ -333,5 +333,5 @@ echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
 
 # Réactiver le curseur
 tput cnorm
-sleep 1
+sleep 3
 
