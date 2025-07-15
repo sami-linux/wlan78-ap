@@ -262,9 +262,9 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
          echo -e " \e[1;31m* VERY IMPORTANT *\e[33m"
          sleep 2
          echo -e " > To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first."
-         sleep 4
          echo -e " > If you're having trouble with your Access Point or your Wi-Fi interface run : \e[1;35m./wlan78-ap reset \e[33m "
-   fi
+         sleep 2   
+    fi
 
     # Génération du fichier
     cat > "$WPA_CONF" <<EOF
@@ -317,7 +317,6 @@ fi
 
 
 #echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
-sleep 4
 echo
 # Masquer le curseur
 tput civis
@@ -333,5 +332,5 @@ echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
 
 # Réactiver le curseur
 tput cnorm
-sleep 1
+
 
