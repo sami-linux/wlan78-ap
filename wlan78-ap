@@ -317,10 +317,10 @@ fi
 
 
 #echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
+sleep 4
 echo
 # Masquer le curseur
 tput civis
-sleep 3
 for i in {1..4}; do
     echo -ne "\e[1;32m * ACCESS-POINT ENABLED\e[0m\r"
     sleep 0.6
@@ -333,5 +333,5 @@ echo -e "\e[1;32m * ACCESS-POINT ENABLED\e[0m"
 
 # Réactiver le curseur
 tput cnorm
-sleep 3
+sleep 1
 
