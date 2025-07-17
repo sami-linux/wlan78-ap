@@ -241,9 +241,9 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
     fi
     # Demande du nouveau mot de passe
     while true; do
-        read -s -p " * Enter the password (8 to 63 characters): " PASS1
+        read -s -p " * Enter new password (8 to 63 characters): " PASS1
         echo
-        read -s -p " * Enter the password again: : " PASS2
+        read -s -p " * Re-type new password : " PASS2
         echo 
         if [[ "$PASS1" != "$PASS2" ]]; then
             echo " * Passwords do not match. Please try again."
@@ -263,7 +263,7 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
          sleep 2
          echo -e " > To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first."
          echo -e " > If you're having trouble with your Access Point or your Wi-Fi interface run : \e[1;35m./wlan78-ap reset \e[33m "
-         sleep 2   
+         sleep 4
     fi
 
     # Génération du fichier
