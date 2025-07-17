@@ -258,6 +258,7 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
         #echo "⚠️  Le mot de passe est identique à l’ancien."
 #        echo "ℹ️  Si vos appareils sont déjà connectés, ils peuvent utiliser le cache existant."
    # else
+         echo "* Password successfully updated."
          sleep 1
          echo -e " \e[1;31m* VERY IMPORTANT *\e[33m"
          sleep 2
