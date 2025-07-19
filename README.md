@@ -24,7 +24,7 @@ Make sure the following tools are installed:
 
 - `iw`
 - `iptables`
-- `dnsmasq ' (compiled with the USE flag dhcp).
+- `dnsmasq` (compiled with the USE flag dhcp).
 - `wpa_supplicant`(compiled with the USE flag ap).
 
 ## 💻 Usage
