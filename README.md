@@ -34,7 +34,7 @@ Make sure the following tools are installed:
 - You will be prompted to enter a password.
 - Your access point will be created and start broadcasting.
 - Connect with your smartphone, tablet or other Wi-Fi device.
-- To check if your Wi-Fi interface supports AP mode, run the following command: **iw list | grep -A 10 "Supported interface modes**. You       should see the word 'AP' appear.
+- To check if your Wi-Fi interface supports AP mode, run the following command: **iw list | grep -A 10 "Supported interface modes"**. You should see the word 'AP' appear.
 
 ## Very Important
 
