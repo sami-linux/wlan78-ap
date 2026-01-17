@@ -262,7 +262,7 @@ if [[ $regenerate_wpa_conf -eq 1 ]]; then
          sleep 1
          echo -e " \e[1;31m* VERY IMPORTANT *\e[33m"
          sleep 2
-         echo -e " > To connect with your new password, you may need to \e[1;35mforget \e[33myour old network on your device first."
+         echo -e " > To connect with your new password, you may need to \e[1;35mforget \e[33myour old network "wlan78" (if it exists on your device)."
          sleep 3
          echo -e " > If you're having trouble with your Access Point or your Wi-Fi interface run : \e[1;35m./wlan78-ap reset \e[33m "
          sleep 3
@@ -299,7 +299,7 @@ fi
 
 cat > "$DNSMASQ_CONF" <<EOF
 interface=$AP_IFACE
-#bind-interfaces
+bind-interfaces
 dhcp-range=192.168.50.10,192.168.50.100,12h
 EOF
 
